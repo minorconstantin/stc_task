@@ -3,6 +3,16 @@
 read_rite_files::read_rite_files()
 {
 read_data.clear(); // на всякий случай очищаем файл с данными
+set_success_read (false);
+read_settings ();
+}
+void read_rite_files::set_success_read(bool state) // функция сохранения ошибки
+{
+success_read = state;
+}
+bool read_rite_files::get_success_read() // функция проверки успешности чтения
+{
+return success_read;
 }
 void read_rite_files::set_error_read(short error) // функция сохранения ошибки
 {
@@ -35,9 +45,13 @@ istringstream for_convert(string_temp);
 double new_data;
 for_convert >> new_data;
 set_read_data(new_data);
+set_error_read(read_data.size());
+if (get_error_read()   ==15)
+set_success_read (true);
+else
+set_success_read (false);
 }
 setings_file.close();
-set_error_read(read_data.size());
 }
 string read_rite_files::convert_to_text (short error)
 {
