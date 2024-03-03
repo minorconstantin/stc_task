@@ -1,4 +1,6 @@
-﻿cmake_minimum_required(VERSION 2.8)
-
+﻿cmake_minimum_required(VERSION 3.15)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 project(grad_defend)
 add_executable(${PROJECT_NAME} calculations.cpp read_rite_files.cpp main.cpp)

@@ -1,7 +1,11 @@
 ﻿#ifndef CALCULATIONS_H
 #define CALCULATIONS_H
+#include <cmath>
 #include "read_rite_files.h"
-#include "Eigen/Dense"
+#include "eigen/Eigen/Dense"
+#include "eigen/nonlinearoptimization"
+#include "eigen/NumericalDiff"
+#include "eigen/AutoDiff"
 using namespace Eigen;
 class calculations
 {
@@ -19,14 +23,24 @@ void form_grad ();  // формирование градиента
 void check_grad (); // проверка условия окончания алгоритма по градиенту
 void work_calculate (); // функция вычислений
 void form_new_param(); // формирование новых значений параметров
-void check_new_param (); // проверка условия завершения алгоритма по разности функций 
-void  substitution(); // замена начальных значений
 void check_iteration (); // проверка условия выхода из алгоритма  по количеству итераций
 void calculate_work (); // цикл вычислений
 void file_result (); // запись результатов 
 double e; // точность алгоритма
-double A; // шаг градиентного спуска
-unsigned  int n; //  количество итераций
+double norm_grad ; // норма вектора градиента
+unsigned  int n; //  максимальное количество итераций
+unsigned  int  step; // счетчик итераций
+vector<double>   input_vector, output_vector;  // входные данные
+VectorXd  a_b_c; // выходные данные
+VectorXd  d_e_f; // координаты точек d e f
+VectorXd  sub_; // разности векторов
+VectorXd  grad; // градиенты
+VectorXd  alpha; // шаг спуска
+double funck (const VectorXd &, VectorXd &, VectorXd &); // исходная функция
+VectorXd  funck_grad (const VectorXd &) ; // функция градиентов
+vector<double> convert_to_double(VectorXd    ); // функция конвертирования из VectorXd     в double
+VectorXd  abs_xd(VectorXd) ; // модуль координат градиентов
+
 };
 
 #endif // CALCULATIONS_H
