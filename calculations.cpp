@@ -65,10 +65,8 @@ void calculations::prepar_data () // предварительная подгот
     Map<VectorXd> temp_sub_ (input_vector.data() +6, 9);
     d_e_f = temp_d_e_f;
     sub_ =temp_sub_ ;
-    //a_b_c = d_e_f;
-    //a_b_c.array() +=1.5;
     a_b_c.resize(d_e_f.size());
-    a_b_c.array() =0;
+    a_b_c.setZero();
     e =0.05;
     n =50;
     step =0;
@@ -106,11 +104,11 @@ void calculations::form_grad () // формирование градиента
     file_data.write_mes("Предполагаемые параметры");
     vector<double> temp = convert_to_double(a_b_c);
     ostringstream temp_convert;
-    temp_convert << fixed << funck(a_b_c, d_e_f, sub_); // значение функции
+    temp_convert << fixed << funck(); // значение функции
     string mes = "значение функции " + temp_convert.str() + " ";
     file_data.write_mes(mes);
     file_data.write_mes("Градиент равен ");
-    grad = funck_grad (a_b_c);
+    grad = funck_grad ();
     vector<double> double_grad = convert_to_double(grad);
 }
 void calculations::check_grad () // функция проверки градиента
@@ -142,9 +140,6 @@ void calculations::form_new_param () // функция формирования 
 Рассчитывает приближенное значение параметров с учетом градиентов */
     file_data.write_mes("Новое значение параметров");
     a_b_c = a_b_c -grad.cwiseProduct(abs_xd(alpha));
-    // a_b_c = a_b_c -constants_xd(alpha);
-    //a_b_c = a_b_c -grad;
-
     vector<double> double_a_b_c = convert_to_double(a_b_c);
 }
 void calculations::check_iteration () // проверка на количество итераций
@@ -177,10 +172,9 @@ void calculations::file_result () // функция записи результ�
     Map<VectorXd>(output_vector.data(), output_vector.size()) = a_b_c;
     file_data.write_answer(output_vector);
 }
-double calculations::funck (const VectorXd &a_b_c, VectorXd &d_e_f, VectorXd &sub_)
+double calculations::funck()
 {
-    VectorXd funk; // вектор, в котором хранится значение функции
-    funk.resize(9);
+    VectorXd funk =VectorXd::Zero(9); // вектор, в котором хранится значение функции
     funk(0) =sqrt(pow((sub_(0) + sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - a_b_c(3), 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
     funk(1) =sqrt(pow((sub_(1) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
     funk(2) =sqrt(pow((sub_(2) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - a_b_c(3), 2))), 2)) ;
@@ -192,12 +186,110 @@ double calculations::funck (const VectorXd &a_b_c, VectorXd &d_e_f, VectorXd &su
     funk(8) =sqrt(pow((sub_(8) + sqrt(pow(d_e_f(4) - a_b_c(4), 2) + pow(d_e_f(5) - a_b_c(5), 2)) -sqrt(pow(d_e_f(4) - a_b_c(2), 2) + pow(d_e_f(5) - a_b_c(3), 2))), 2));
     return funk.array().sum();
 }
-VectorXd calculations::funck_grad (const VectorXd &abc)
+VectorXd calculations::funck_grad ()
 {
-    VectorXd temp_a_b_c, temp_summ;
-    temp_a_b_c.resize(a_b_c.size());
-    temp_summ.resize(6);
-    temp_summ(0) = ((d_e_f(0) - a_b_c(0))*(-sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2)) + sqrt(pow(d_e_f(0) - a_b_c(2),2) + pow(d_e_f(1) - a_b_c(3),2)) + sub_(0)))/(sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2))*sqrt(pow(-sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2)) + sqrt(pow(d_e_f(0) - a_b_c(2),2) + pow(d_e_f(1) - a_b_c(3),2)) + sub_(0),2))) ;
+    VectorXd temp_a_b_c =VectorXd::Zero(a_b_c.size());
+VectorXd temp_summ =VectorXd::Zero(a_b_c.size());
+AutoDiffScalar<Vector2d> x_0(a_b_c(0), Vector2d(1,0)), y_0;
+AutoDiffScalar<Vector2d> x_1(a_b_c(1), Vector2d(1,0)), y_1;
+AutoDiffScalar<Vector2d> x_2(a_b_c(2), Vector2d(1,0)), y_2;
+AutoDiffScalar<Vector2d> x_3(a_b_c(3), Vector2d(1,0)), y_3;
+AutoDiffScalar<Vector2d> x_4(a_b_c(4), Vector2d(1,0)), y_4;
+AutoDiffScalar<Vector2d> x_5(a_b_c(5), Vector2d(1,0)), y_5;
+    y_0 =sqrt(pow((sub_(0) + sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - a_b_c(3), 2)) -sqrt(pow(d_e_f(0) - x_0, 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
+temp_summ(0)  = y_0.derivatives()[0];
+    y_1 =sqrt(pow((sub_(0) + sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - a_b_c(3), 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - x_1, 2))), 2)) ;
+temp_summ(1)  = y_1.derivatives()[0];
+    y_2 =sqrt(pow((sub_(0) + sqrt(pow(d_e_f(0) - x_2, 2) + pow(d_e_f(1) - a_b_c(3), 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
+temp_summ(2)  = y_2.derivatives()[0];
+    y_3 =sqrt(pow((sub_(0) + sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - x_3, 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
+temp_summ(3)  = y_3.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ;
+temp_summ.setZero(); 
+    y_0 =sqrt(pow((sub_(1) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - x_0, 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
+temp_summ(0)  = y_0.derivatives()[0];
+    y_1 =sqrt(pow((sub_(1) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - x_1, 2))), 2)) ;
+temp_summ(1)  = y_1.derivatives()[0];
+    y_4 =sqrt(pow((sub_(1) + sqrt(pow(d_e_f(0) - x_4, 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
+temp_summ(4)  = y_4.derivatives()[0];
+    y_5 =sqrt(pow((sub_(1) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - x_5, 2)) -sqrt(pow(d_e_f(0) - a_b_c(0), 2) + pow(d_e_f(1) - a_b_c(1), 2))), 2)) ;
+temp_summ(5)  = y_5.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ; 
+temp_summ.setZero();
+    y_2 =sqrt(pow((sub_(2) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - x_2, 2) + pow(d_e_f(1) - a_b_c(3), 2))), 2)) ;
+temp_summ(2)  = y_2.derivatives()[0];
+    y_3 =sqrt(pow((sub_(2) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - x_3, 2))), 2)) ;
+temp_summ(3)  = y_3.derivatives()[0];
+    y_4 =sqrt(pow((sub_(2) + sqrt(pow(d_e_f(0) - x_4, 2) + pow(d_e_f(1) - a_b_c(5), 2)) -sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - a_b_c(3), 2))), 2)) ;
+temp_summ(4)  = y_4.derivatives()[0];
+    y_5 =sqrt(pow((sub_(2) + sqrt(pow(d_e_f(0) - a_b_c(4), 2) + pow(d_e_f(1) - x_5, 2)) -sqrt(pow(d_e_f(0) - a_b_c(2), 2) + pow(d_e_f(1) - a_b_c(3), 2))), 2)) ;
+temp_summ(5)  = y_5.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ;
+temp_summ.setZero();
+    y_0 =sqrt(pow((sub_(3) + sqrt(pow(d_e_f(2) - a_b_c(2), 2) + pow(d_e_f(3) - a_b_c(3), 2)) -sqrt(pow(d_e_f(2) - x_0, 2) + pow(d_e_f(3) - a_b_c(1), 2))), 2)) ;
+temp_summ(0)  = y_0.derivatives()[0];
+    y_1 =sqrt(pow((sub_(3) + sqrt(pow(d_e_f(2) - a_b_c(2), 2) + pow(d_e_f(3) - a_b_c(3), 2)) -sqrt(pow(d_e_f(2) - a_b_c(0), 2) + pow(d_e_f(3) - x_1, 2))), 2)) ;
+temp_summ(1)  = y_1.derivatives()[0];
+    y_2 =sqrt(pow((sub_(3) + sqrt(pow(d_e_f(2) - x_2, 2) + pow(d_e_f(3) - a_b_c(3), 2)) -sqrt(pow(d_e_f(2) - a_b_c(0), 2) + pow(d_e_f(3) - a_b_c(1), 2))), 2)) ;
+temp_summ(2)  = y_2.derivatives()[0];
+    y_3 =sqrt(pow((sub_(3) + sqrt(pow(d_e_f(2) - a_b_c(2), 2) + pow(d_e_f(3) - x_3, 2)) -sqrt(pow(d_e_f(2) - a_b_c(0), 2) + pow(d_e_f(3) - a_b_c(1), 2))), 2)) ;
+temp_summ(3)  = y_3.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ;
+temp_summ.setZero(); 
+    y_0 =sqrt(pow((sub_(4) + sqrt(pow(d_e_f(2) - a_b_c(4), 2) + pow(d_e_f(3) - a_b_c(5), 2)) -sqrt(pow(d_e_f(2) - x_0, 2) + pow(d_e_f(3) - a_b_c(1), 2))), 2)) ;
+temp_summ(0)  = y_0.derivatives()[0];
+    y_1 =sqrt(pow((sub_(4) + sqrt(pow(d_e_f(2) - a_b_c(4), 2) + pow(d_e_f(3) - a_b_c(5), 2)) -sqrt(pow(d_e_f(2) - a_b_c(0), 2) + pow(d_e_f(3) - x_1, 2))), 2)) ;
+temp_summ(1)  = y_1.derivatives()[0];
+    y_4 =sqrt(pow((sub_(4) + sqrt(pow(d_e_f(2) - x_4, 2) + pow(d_e_f(3) - a_b_c(5), 2)) -sqrt(pow(d_e_f(2) - a_b_c(0), 2) + pow(d_e_f(3) - a_b_c(1), 2))), 2)) ;
+temp_summ(4)  = y_4.derivatives()[0];
+    y_5 =sqrt(pow((sub_(4) + sqrt(pow(d_e_f(2) - a_b_c(4), 2) + pow(d_e_f(3) - x_5, 2)) -sqrt(pow(d_e_f(2) - a_b_c(0), 2) + pow(d_e_f(3) - a_b_c(1), 2))), 2)) ;
+temp_summ(5)  = y_5.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ; 
+temp_summ.setZero();
+    y_2 =sqrt(pow((sub_(5) + sqrt(pow(d_e_f(2) - a_b_c(4), 2) + pow(d_e_f(3) - a_b_c(5), 2)) -sqrt(pow(d_e_f(2) - x_2, 2) + pow(d_e_f(3) - a_b_c(3), 2))), 2)) ;
+temp_summ(2)  = y_2.derivatives()[0];
+    y_3 =sqrt(pow((sub_(5) + sqrt(pow(d_e_f(2) - a_b_c(4), 2) + pow(d_e_f(3) - a_b_c(5), 2)) -sqrt(pow(d_e_f(2) - a_b_c(2), 2) + pow(d_e_f(3) - x_3, 2))), 2)) ;
+temp_summ(3)  = y_3.derivatives()[0];
+    y_4 =sqrt(pow((sub_(5) + sqrt(pow(d_e_f(2) - x_4, 2) + pow(d_e_f(3) - a_b_c(5), 2)) -sqrt(pow(d_e_f(2) - a_b_c(2), 2) + pow(d_e_f(3) - a_b_c(3), 2))), 2)) ;
+temp_summ(4)  = y_4.derivatives()[0];
+    y_5 =sqrt(pow((sub_(5) + sqrt(pow(d_e_f(2) - a_b_c(4), 2) + pow(d_e_f(3) - x_5, 2)) -sqrt(pow(d_e_f(2) - a_b_c(2), 2) + pow(d_e_f(3) - a_b_c(3), 2))), 2)) ;
+temp_summ(5)  = y_5.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ;
+temp_summ.setZero();
+    y_0 =sqrt(pow((sub_(6) + sqrt(pow(d_e_f(4) - a_b_c(2), 2) + pow(d_e_f(5) - a_b_c(3), 2)) -sqrt(pow(d_e_f(4) - x_0, 2) + pow(d_e_f(5) - a_b_c(1), 2))), 2)) ;
+temp_summ(0)  = y_0.derivatives()[0];
+    y_1 =sqrt(pow((sub_(6) + sqrt(pow(d_e_f(4) - a_b_c(2), 2) + pow(d_e_f(5) - a_b_c(3), 2)) -sqrt(pow(d_e_f(4) - a_b_c(0), 2) + pow(d_e_f(5) - x_1, 2))), 2)) ;
+temp_summ(1)  = y_1.derivatives()[0];
+    y_2 =sqrt(pow((sub_(6) + sqrt(pow(d_e_f(4) - x_2, 2) + pow(d_e_f(5) - a_b_c(3), 2)) -sqrt(pow(d_e_f(4) - a_b_c(0), 2) + pow(d_e_f(5) - a_b_c(1), 2))), 2)) ;
+temp_summ(2)  = y_2.derivatives()[0];
+    y_3 =sqrt(pow((sub_(6) + sqrt(pow(d_e_f(4) - a_b_c(2), 2) + pow(d_e_f(5) - x_3, 2)) -sqrt(pow(d_e_f(4) - a_b_c(0), 2) + pow(d_e_f(5) - a_b_c(1), 2))), 2)) ;
+temp_summ(3)  = y_3.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ;
+temp_summ.setZero(); 
+    y_0 =sqrt(pow((sub_(7) + sqrt(pow(d_e_f(4) - a_b_c(4), 2) + pow(d_e_f(5) - a_b_c(5), 2)) -sqrt(pow(d_e_f(4) - x_0, 2) + pow(d_e_f(5) - a_b_c(1), 2))), 2)) ;
+temp_summ(0)  = y_0.derivatives()[0];
+    y_1 =sqrt(pow((sub_(7) + sqrt(pow(d_e_f(4) - a_b_c(4), 2) + pow(d_e_f(5) - a_b_c(5), 2)) -sqrt(pow(d_e_f(4) - a_b_c(0), 2) + pow(d_e_f(5) - x_1, 2))), 2)) ;
+temp_summ(1)  = y_1.derivatives()[0];
+    y_4 =sqrt(pow((sub_(7) + sqrt(pow(d_e_f(4) - x_4, 2) + pow(d_e_f(5) - a_b_c(5), 2)) -sqrt(pow(d_e_f(4) - a_b_c(0), 2) + pow(d_e_f(5) - a_b_c(1), 2))), 2)) ;
+temp_summ(4)  = y_4.derivatives()[0];
+    y_5 =sqrt(pow((sub_(7) + sqrt(pow(d_e_f(4) - a_b_c(4), 2) + pow(d_e_f(5) - x_5, 2)) -sqrt(pow(d_e_f(4) - a_b_c(0), 2) + pow(d_e_f(5) - a_b_c(1), 2))), 2)) ;
+temp_summ(5)  = y_5.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ; 
+temp_summ.setZero();
+    y_2 =sqrt(pow((sub_(8) + sqrt(pow(d_e_f(4) - a_b_c(4), 2) + pow(d_e_f(5) - a_b_c(5), 2)) -sqrt(pow(d_e_f(4) - x_2, 2) + pow(d_e_f(5) - a_b_c(3), 2))), 2)) ;
+temp_summ(2)  = y_2.derivatives()[0];
+    y_3 =sqrt(pow((sub_(8) + sqrt(pow(d_e_f(4) - a_b_c(4), 2) + pow(d_e_f(5) - a_b_c(5), 2)) -sqrt(pow(d_e_f(4) - a_b_c(2), 2) + pow(d_e_f(5) - x_3, 2))), 2)) ;
+temp_summ(3)  = y_3.derivatives()[0];
+    y_4 =sqrt(pow((sub_(8) + sqrt(pow(d_e_f(4) - x_4, 2) + pow(d_e_f(5) - a_b_c(5), 2)) -sqrt(pow(d_e_f(4) - a_b_c(2), 2) + pow(d_e_f(5) - a_b_c(3), 2))), 2)) ;
+temp_summ(4)  = y_4.derivatives()[0];
+    y_5 =sqrt(pow((sub_(8) + sqrt(pow(d_e_f(4) - a_b_c(4), 2) + pow(d_e_f(5) - x_5, 2)) -sqrt(pow(d_e_f(4) - a_b_c(2), 2) + pow(d_e_f(5) - a_b_c(3), 2))), 2)) ;
+temp_summ(5)  = y_5.derivatives()[0];
+temp_a_b_c = temp_a_b_c + temp_summ;
+temp_summ.setZero();
+
+    return temp_a_b_c;
+
+/*    temp_summ(0) = ((d_e_f(0) - a_b_c(0))*(-sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2)) + sqrt(pow(d_e_f(0) - a_b_c(2),2) + pow(d_e_f(1) - a_b_c(3),2)) + sub_(0)))/(sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2))*sqrt(pow(-sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2)) + sqrt(pow(d_e_f(0) - a_b_c(2),2) + pow(d_e_f(1) - a_b_c(3),2)) + sub_(0),2))) ;
     temp_summ(1) =((d_e_f(0) - a_b_c(0))*(-sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2)) + sqrt(pow(d_e_f(0) - a_b_c(4),2) + pow(d_e_f(1) - a_b_c(5),2)) + sub_(1)))/(sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2))*sqrt(pow(-sqrt(pow(d_e_f(0) - a_b_c(0),2) + pow(d_e_f(1) - a_b_c(1),2)) + sqrt(pow(d_e_f(0) - a_b_c(4),2) + pow(d_e_f(1) - a_b_c(5),2)) + sub_(1),2)));
     temp_summ(2) =((d_e_f(2) - a_b_c(0))*(-sqrt(pow(d_e_f(2) - a_b_c(0),2) + pow(d_e_f(3) - a_b_c(1),2)) + sqrt(pow(d_e_f(2) - a_b_c(2),2) + pow(d_e_f(3) - a_b_c(3),2)) + sub_(3)))/(sqrt(pow(d_e_f(2) - a_b_c(0),2) + pow(d_e_f(3) - a_b_c(1),2))*sqrt(pow(-sqrt(pow(d_e_f(2) - a_b_c(0),2) + pow(d_e_f(3) - a_b_c(1),2)) + sqrt(pow(d_e_f(2) - a_b_c(2),2) + pow(d_e_f(3) - a_b_c(3),2)) + sub_(3),2)));
     temp_summ(3) =((d_e_f(2) - a_b_c(0))*(-sqrt(pow(d_e_f(2) - a_b_c(0),2) + pow(d_e_f(3) - a_b_c(1),2)) + sqrt(pow(d_e_f(2) - a_b_c(4),2) + pow(d_e_f(3) - a_b_c(5),2)) + sub_(4)))/(sqrt(pow(d_e_f(2) - a_b_c(0),2) + pow(d_e_f(3) - a_b_c(1),2))*sqrt(pow(-sqrt(pow(d_e_f(2) - a_b_c(0),2) + pow(d_e_f(3) - a_b_c(1),2)) + sqrt(pow(d_e_f(2) - a_b_c(4),2) + pow(d_e_f(3) - a_b_c(5),2)) + sub_(4),2)));
@@ -238,8 +330,7 @@ VectorXd calculations::funck_grad (const VectorXd &abc)
     temp_summ(3) =((a_b_c(5) - d_e_f(3))*(-sqrt(pow(d_e_f(2) - a_b_c(2),2) + pow(d_e_f(3) - a_b_c(3),2)) + sqrt(pow(d_e_f(2) - a_b_c(4),2) + pow(d_e_f(3) - a_b_c(5),2)) + sub_(5)))/(sqrt(pow(d_e_f(2) - a_b_c(4),2) + pow(d_e_f(3) - a_b_c(5),2))*sqrt(pow(-sqrt(pow(d_e_f(2) - a_b_c(2),2) + pow(d_e_f(3) - a_b_c(3),2)) + sqrt(pow(d_e_f(2) - a_b_c(4),2) + pow(d_e_f(3) - a_b_c(5),2)) + sub_(5),2)));
     temp_summ(4) =((a_b_c(5) - d_e_f(5))*(-sqrt(pow(d_e_f(4) - a_b_c(0),2) + pow(d_e_f(5) - a_b_c(1),2)) + sqrt(pow(d_e_f(4) - a_b_c(4),2) + pow(d_e_f(5) - a_b_c(5),2)) + sub_(7)))/(sqrt(pow(d_e_f(4) - a_b_c(4),2) + pow(d_e_f(5) - a_b_c(5),2))*sqrt(pow(-sqrt(pow(d_e_f(4) - a_b_c(0),2) + pow(d_e_f(5) - a_b_c(1),2)) + sqrt(pow(d_e_f(4) - a_b_c(4),2) + pow(d_e_f(5) - a_b_c(5),2)) + sub_(7),2)));
     temp_summ(5) =((a_b_c(5) - d_e_f(5))*(-sqrt(pow(d_e_f(4) - a_b_c(2),2) + pow(d_e_f(5) - a_b_c(3),2)) + sqrt(pow(d_e_f(4) - a_b_c(4),2) + pow(d_e_f(5) - a_b_c(5),2)) + sub_(8)))/(sqrt(pow(d_e_f(4) - a_b_c(4),2) + pow(d_e_f(5) - a_b_c(5),2))*sqrt(pow(-sqrt(pow(d_e_f(4) - a_b_c(2),2) + pow(d_e_f(5) - a_b_c(3),2)) + sqrt(pow(d_e_f(4) - a_b_c(4),2) + pow(d_e_f(5) - a_b_c(5),2)) + sub_(8),2)));
-    temp_a_b_c (5) =temp_summ.array().sum();
-    return temp_a_b_c;
+    temp_a_b_c (5) =temp_summ.array().sum(); */
 }
 vector<double> calculations::convert_to_double(VectorXd calc_vector)
 {

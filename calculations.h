@@ -1,11 +1,8 @@
 ﻿#ifndef CALCULATIONS_H
 #define CALCULATIONS_H
 #include <cmath>
-#include <algorithm>
 #include "read_rite_files.h"
 #include "eigen/Eigen/Dense"
-#include "eigen/nonlinearoptimization"
-#include "eigen/NumericalDiff"
 #include "eigen/AutoDiff"
 using namespace Eigen;
 class calculations
@@ -37,8 +34,8 @@ VectorXd d_e_f; // координаты точек d e f
 VectorXd sub_; // разности векторов
 VectorXd grad; // градиенты
 VectorXd alpha; // шаг спуска
-double funck (const VectorXd &, VectorXd &, VectorXd &); // исходная функция
-VectorXd funck_grad (const VectorXd &) ; // функция градиентов
+double funck (); // исходная функция
+VectorXd funck_grad () ; // функция градиентов
 vector<double> convert_to_double(VectorXd ); // функция конвертирования из VectorXd в double
 VectorXd abs_xd(VectorXd) ; // модуль координат градиентов
 VectorXd constants_xd(VectorXd) ; // функция создания шага спуска градиента
